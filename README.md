@@ -1,3 +1,12 @@
+### Steps  
+```shell
+
+  sudo docker compose -f docker-compose.build.yml build # To build the images
+  sudo docker-compose up -d # To deploy the containers
+  sudo docker ps # To list running containers
+
+```
+
 ### Docker images build  
 ![docker-build-images](https://github.com/Thomas7997/app-deployment/assets/45339466/7202e1d2-c0a5-424b-ad41-2036690950c8)
 
