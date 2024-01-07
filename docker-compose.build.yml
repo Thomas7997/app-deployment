@@ -1,26 +1,30 @@
-depends_on:
-   redis:
-     condition: service_healthy
-   db:
-     condition: service_healthy
+worker :
+  depends_on:
+    redis:
+      condition: service_healthy
+    db:
+      condition: service_healthy
 
-volumes:
-     - ./vote:/usr/local/app
+vote:
+  volumes:
+    - ./vote:/usr/local/app
 
-healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost"]
+    interval: 15s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
 
-profiles: ["seed"]
+seed-data:
+  profiles: ["seed"]
     depends_on:
       vote:
         condition: service_healthy
     restart: "no"
 
-entrypoint: nodemon --inspect=0.0.0.0 server.js
+result:
+  entrypoint: nodemon --inspect=0.0.0.0 server.js
     depends_on:
       db:
         condition: service_healthy
@@ -30,13 +34,18 @@ entrypoint: nodemon --inspect=0.0.0.0 server.js
       - "5001:80"
       - "127.0.0.1:9229:9229"
 
-    volumes:
-      - "db-data:/var/lib/postgresql/data"
+postgres:
+  volumes:
+    - "db-data:/var/lib/postgresql/data"
+    - "./healthchecks:/healthchecks"
+  healthcheck:
+    test: /healthchecks/postgres.sh
+    interval: "5s"
       - "./healthchecks:/healthchecks"
-    healthcheck:
-      test: /healthchecks/postgres.sh
-      interval: "5s"
-      - "./healthchecks:/healthchecks"
-    healthcheck:
-      test: /healthchecks/redis.sh
-      interval: "5s"
+
+redis:
+  volumes:
+    - "./healthchecks:/healthchecks"
+  healthcheck:
+    test: /healthchecks/redis.sh
+    interval: "5s"
