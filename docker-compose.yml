@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  vote:
+    ports:
+      - "5002:80"
+    networks:
+      - front-tier
+      - back-tier
+    image: vote
+
+  result:
+    ports:
+      - "5001:80"
+    networks:
+      - front-tier
+      - back-tier
+    image: result
+
+  worker:
+    networks:
+      - back-tier
+    image: worker
+
+  seed-data:
+    networks:
+      - front-tier
+    depends_on:
+      - vote
+    image: seed-data
+
+  db:
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+    networks:
+      - back-tier
+    image: postgres:16.1
+
+  redis:
+    networks:
+      - back-tier
+    image: redis:latest
+
+networks:
+  back-tier:
+  front-tier:
+
+volumes:
+  db-data:
+
