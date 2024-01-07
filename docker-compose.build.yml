@@ -1,51 +1,26 @@
-worker :
-  depends_on:
-    redis:
-      condition: service_healthy
-    db:
-      condition: service_healthy
+version: '3.8'
+services:
+  vote:
+    image: vote
+    build:
+      context: ./vote
+      dockerfile: Dockerfile
 
-vote:
-  volumes:
-    - ./vote:/usr/local/app
+  result:
+    image: result
+    build:
+      context: ./result
+      dockerfile: Dockerfile
 
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost"]
-    interval: 15s
-    timeout: 5s
-    retries: 3
-    start_period: 10s
+  seed-data:
+    image: seed-data
+    build:
+      context: ./seed-data
+      dockerfile: Dockerfile
 
-seed-data:
-  profiles: ["seed"]
-    depends_on:
-      vote:
-        condition: service_healthy
-    restart: "no"
+  worker:
+    image: worker
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
 
-result:
-  entrypoint: nodemon --inspect=0.0.0.0 server.js
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./result:/usr/local/app
-    ports:
-      - "5001:80"
-      - "127.0.0.1:9229:9229"
-
-postgres:
-  volumes:
-    - "db-data:/var/lib/postgresql/data"
-    - "./healthchecks:/healthchecks"
-  healthcheck:
-    test: /healthchecks/postgres.sh
-    interval: "5s"
-      - "./healthchecks:/healthchecks"
-
-redis:
-  volumes:
-    - "./healthchecks:/healthchecks"
-  healthcheck:
-    test: /healthchecks/redis.sh
-    interval: "5s"
